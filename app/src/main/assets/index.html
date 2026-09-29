@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>everyday math</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <script type="text/javascript" src="https://websdk.start.io/tag?appId=208213531" async></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b131e; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 8px; padding-bottom: 65px; }
+        .header { width: 100%; max-width: 400px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .header-left { display: flex; align-items: center; }
+        .logo { width: 32px; height: 32px; background: linear-gradient(135deg, #38bdf8, #0284c7); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin-right: 10px; }
+        .app-title { font-size: 16px; font-weight: 600; }
+        .app-sub { font-size: 11px; color: #64748b; }
+        .history-btn { background: #1e293b; color: #38bdf8; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+        .tabs { display: flex; background-color: #111c2e; border-radius: 12px; padding: 4px; width: 100%; max-width: 400px; margin-bottom: 10px; }
+        .tab { flex: 1; text-align: center; padding: 8px; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; color: #94a3b8; }
+        .tab.active { background-color: #38bdf8; color: #0b131e; font-weight: 600; }
+        .display-card { background-color: #111c2e; border-radius: 14px; padding: 12px; width: 100%; max-width: 400px; margin-bottom: 10px; border: 1px solid #1e293b; }
+        .display-top { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 4px; }
+        .display-main { font-size: 24px; font-weight: 400; text-align: right; color: #ffffff; overflow-x: auto; white-space: nowrap; max-height: 80px; padding: 4px 0; }
+        .explanation-box { background-color: #111c2e; border-radius: 10px; padding: 8px 12px; width: 100%; max-width: 400px; margin-bottom: 10px; border: 1px solid #1e293b; font-size: 12px; color: #38bdf8; display: none; }
+        .deeper-math { background-color: #111c2e; border-radius: 14px; padding: 12px; width: 100%; max-width: 400px; margin-bottom: 10px; border: 1px solid #1e293b; display: none; }
+        .deeper-math.active { display: block; }
+        .deeper-title { font-size: 11px; font-weight: 600; color: #38bdf8; margin-bottom: 4px; text-transform: uppercase; }
+        .deeper-sub { font-size: 10px; color: #64748b; margin-bottom: 8px; }
+        .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+        .chip { background-color: #1e293b; color: #cbd5e1; font-size: 11px; padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; }
+        .mode-panel { width: 100%; max-width: 400px; display: none; }
+        .mode-panel.active { display: block; }
+        .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 400px; }
+        .btn { background-color: #111c2e; color: #ffffff; border: none; border-radius: 10px; padding: 12px 6px; font-size: 16px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-orange { background-color: #f97316; color: #ffffff; }
+        .btn-red { background-color: #ef4444; color: #ffffff; }
+        .btn-memory { font-size: 11px; color: #64748b; background: #162235; }
+        .btn-equals { grid-column: span 4; background-color: #f97316; color: #ffffff; font-size: 18px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: #111c2e; width: 90%; max-width: 380px; border-radius: 14px; padding: 16px; max-height: 80vh; overflow-y: auto; border: 1px solid #1e293b; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 15px; font-weight: bold; }
+        .close-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; }
+        .history-item { padding: 8px; border-bottom: 1px solid #1e293b; font-size: 12px; margin-bottom: 6px; }
+        #startio-banner { position: fixed; bottom: 0; left: 0; width: 100%; height: 50px; background-color: #05080e; display: flex; align-items: center; justify-content: center; border-top: 1px solid #1e293b; z-index: 99; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">12</div>
+            <div>
+                <div class="app-title">everyday math</div>
+                <div class="app-sub">a dependable place for numbers</div>
+            </div>
+        </div>
+        <button class="history-btn" onclick="toggleHistory()">History</button>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTabMode('standard')">Standard</div>
+        <div class="tab" onclick="switchTabMode('scientific')">Scientific</div>
+    </div>
+    <div class="display-card">
+        <div class="display-top">
+            <span id="mode-label">STANDARD</span>
+            <span>TYPE OR TAP</span>
+        </div>
+        <div class="display-main" id="display">0</div>
+    </div>
+    <div class="explanation-box" id="explanation"></div>
+    <div class="deeper-math" id="deeperMathCard">
+        <div class="deeper-title">Explore Deeper Math</div>
+        <div class="deeper-sub">Tools for problems beyond one-line expressions</div>
+        <div class="chips">
+            <button class="chip" onclick="solveAdvanced('algebra')">Algebra</button>
+            <button class="chip" onclick="solveAdvanced('calculus')">Calculus</button>
+            <button class="chip" onclick="solveAdvanced('matrices')">Matrices</button>
+            <button class="chip" onclick="solveAdvanced('statistics')">Statistics</button>
+        </div>
+    </div>
+    <div id="standard-panel" class="mode-panel active">
+        <div class="keypad">
+            <button class="btn btn-memory">MC</button>
+            <button class="btn btn-memory">MR</button>
+            <button class="btn btn-memory">M+</button>
+            <button class="btn btn-memory">M-</button>
+            <button class="btn btn-red" onclick="clearDisplay()">AC</button>
+            <button class="btn btn-memory" onclick="backspace()">⌫</button>
+            <button class="btn btn-memory" onclick="appendValue('%')">%</button>
+            <button class="btn btn-orange" onclick="appendValue('/')">÷</button>
+            <button class="btn" onclick="appendValue('7')">7</button>
+            <button class="btn" onclick="appendValue('8')">8</button>
+            <button class="btn" onclick="appendValue('9')">9</button>
+            <button class="btn btn-orange" onclick="appendValue('*')">×</button>
+            <button class="btn" onclick="appendValue('4')">4</button>
+            <button class="btn" onclick="appendValue('5')">5</button>
+            <button class="btn" onclick="appendValue('6')">6</button>
+            <button class="btn btn-orange" onclick="appendValue('-')">-</button>
+            <button class="btn" onclick="appendValue('1')">1</button>
+            <button class="btn" onclick="appendValue('2')">2</button>
+            <button class="btn" onclick="appendValue('3')">3</button>
+            <button class="btn btn-orange" onclick="appendValue('+')">+</button>
+            <button class="btn" onclick="appendValue('(')">(</button>
+            <button class="btn" onclick="appendValue(')')">)</button>
+            <button class="btn" onclick="appendValue('0')">0</button>
+            <button class="btn" onclick="appendValue('.')">.</button>
+            <button class="btn btn-equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+    <div id="scientific-panel" class="mode-panel">
+        <div class="keypad">
+            <button class="btn btn-memory" onclick="appendValue('sin(')">sin</button>
+            <button class="btn btn-memory" onclick="appendValue('cos(')">cos</button>
+            <button class="btn btn-memory" onclick="appendValue('tan(')">tan</button>
+            <button class="btn btn-memory" onclick="appendValue('pi')">π</button>
+            <button class="btn btn-red" onclick="clearDisplay()">AC</button>
+            <button class="btn btn-memory" onclick="backspace()">⌫</button>
+            <button class="btn btn-memory" onclick="appendValue('sqrt(')">√</button>
+            <button class="btn btn-memory" onclick="appendValue('^')">^</button>
+            <button class="btn" onclick="appendValue('7')">7</button>
+            <button class="btn" onclick="appendValue('8')">8</button>
+            <button class="btn" onclick="appendValue('9')">9</button>
+            <button class="btn btn-orange" onclick="appendValue('/')">÷</button>
+            <button class="btn" onclick="appendValue('4')">4</button>
+            <button class="btn" onclick="appendValue('5')">5</button>
+            <button class="btn" onclick="appendValue('6')">6</button>
+            <button class="btn btn-orange" onclick="appendValue('*')">×</button>
+            <button class="btn" onclick="appendValue('1')">1</button>
+            <button class="btn" onclick="appendValue('2')">2</button>
+            <button class="btn" onclick="appendValue('3')">3</button>
+            <button class="btn btn-orange" onclick="appendValue('-')">-</button>
+            <button class="btn" onclick="appendValue('(')">(</button>
+            <button class="btn" onclick="appendValue(')')">)</button>
+            <button class="btn" onclick="appendValue('0')">0</button>
+            <button class="btn btn-orange" onclick="appendValue('+')">+</button>
+            <button class="btn btn-equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Calculation History Logs</span>
+                <button class="close-btn" onclick="toggleHistory()">✕</button>
+            </div>
+            <div id="historyList">
+                <div style="color: #64748b; font-size: 12px;">No calculations recorded yet.</div>
+            </div>
+        </div>
+    </div>
+    <div id="startio-banner"></div>
+    <script>
+        const display = document.getElementById('display');
+        const explanationBox = document.getElementById('explanation');
+        const deeperMathCard = document.getElementById('deeperMathCard');
+        let historyLogs = [];
+
+        // Initialize Start.io tag SDK instance if available
+        window.startapp = window.startapp || {};
+
+        function switchTabMode(mode) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+            if(mode === 'standard') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('standard-panel').classList.add('active');
+                document.getElementById('mode-label').innerText = 'STANDARD';
+                deeperMathCard.classList.remove('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('scientific-panel').classList.add('active');
+                document.getElementById('mode-label').innerText = 'SCIENTIFIC';
+                deeperMathCard.classList.add('active');
+            }
+            clearDisplay();
+        }
+        function appendValue(val) {
+            if (display.innerText === '0' && val !== '.' && !['sin(', 'cos(', 'tan(', 'sqrt(', '^'].includes(val)) {
+                display.innerText = val;
+            } else {
+                if (display.innerText === '0') display.innerText = '';
+                display.innerText += val;
+            }
+        }
+        function clearDisplay() {
+            display.innerText = '0';
+            explanationBox.style.display = 'none';
+            explanationBox.innerText = '';
+        }
+        function backspace() {
+            if (display.innerText.length > 1) {
+                display.innerText = display.innerText.slice(0, -1);
+            } else {
+                display.innerText = '0';
+            }
+        }
+        function toggleHistory() {
+            const modal = document.getElementById('historyModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+        function solveAdvanced(type) {
+            let title = ''; let res = ''; let explanation = '';
+            if(type === 'algebra') { title = 'Algebra (2x + 8 = 16)'; res = 'x = 4'; explanation = 'Algebra Step-by-Step: 1) Subtract 8 -> 2x = 8. 2) Divide by 2 -> x = 4.'; }
+            else if(type === 'calculus') { title = 'Calculus (d/dx x³)'; res = '3x²'; explanation = 'Calculus Step-by-Step: Applied Power Rule n*x^(n-1).'; }
+            else if(type === 'matrices') { title = 'Matrix Det([[1,2],[3,4]])'; res = '-2'; explanation = 'Matrix Step-by-Step: (1*4) - (2*3) = -2.'; }
+            else if(type === 'statistics') { title = 'Statistics Mean([2,4,6,8])'; res = '5'; explanation = 'Statistics Step-by-Step: Summed values (20) / count (4) = 5.'; }
+            display.innerText = res;
+            showExplanation(explanation);
+            recordHistory(title, res);
+        }
+        function showExplanation(text) {
+            explanationBox.style.display = 'block';
+            explanationBox.innerText = 'Step-by-Step Breakdown: ' + text;
+        }
+        function recordHistory(expr, res) {
+            historyLogs.unshift({ expression: expr, result: res, time: new Date().toLocaleTimeString() });
+            updateHistoryUI();
+        }
+        function updateHistoryUI() {
+            const list = document.getElementById('historyList');
+            if(historyLogs.length === 0) { list.innerHTML = '<div style="color: #64748b; font-size: 12px;">No calculations recorded yet.</div>'; return; }
+            list.innerHTML = historyLogs.map(h => '<div class="history-item"><div style="color: #94a3b8;">' + h.time + '</div><div style="color: #38bdf8; font-weight: bold;">' + h.expression + ' = ' + h.result + '</div></div>').join('');
+        }
+        function calculate() {
+            let rawInput = display.innerText;
+            try {
+                let parsedInput = rawInput
+                    .replace(/sin\(/g, 'sin((pi/180)*')
+                    .replace(/cos\(/g, 'cos((pi/180)*')
+                    .replace(/tan\(/g, 'tan((pi/180)*');
+
+                let result = math.evaluate(parsedInput);
+                if (typeof result === 'object') { result = result.toString(); }
+                if (isNaN(result) || !isFinite(result)) { throw new Error('Invalid computation'); }
+                if (typeof result === 'number' && !Number.isInteger(result)) { result = parseFloat(result.toFixed(6)); }
+                display.innerText = result;
+                showExplanation('Evaluated via Math.js (Degrees mode). Result: ' + result);
+                recordHistory(rawInput, result);
+            } catch (error) {
+                display.innerText = 'Error';
+                showExplanation('Could not parse expression. Check bracket matching.');
+            }
+        }
+    </script>
+</body>
+</html>
